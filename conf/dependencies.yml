@@ -1,0 +1,12 @@
+self: play -> esearch 1.0
+
+require:
+    - play
+    - org.elasticsearch -> elasticsearch 0.17.4
+
+repositories:
+    - sonatype:
+        type: iBiblio
+        root: "http://oss.sonatype.org/content/repositories/releases/"
+        contains:
+            - org.elasticsearch -> *

@@ -1,0 +1,16 @@
+# Ignore all dotfiles...
+.*
+# except for .gitignore
+!.gitignore
+
+# Ignore Play! working directories #
+/commands.pyc
+/data
+/dist
+/eclipse
+/lib
+/logs
+/modules
+/precompiled
+/test-result
+/tmp
