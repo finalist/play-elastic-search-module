@@ -11,6 +11,7 @@ import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.SearchHitField;
 
+import play.data.binding.Binder;
 import play.db.Model;
 import play.db.Model.Property;
 
@@ -30,8 +31,8 @@ public class SearchResult<T extends Model> {
 
                     if (property.type.isInstance(value)) {
                         property.field.set(model, value);
-                    } else if ((property.type == long.class || property.type == Long.class) && value instanceof Integer) {
-                        property.field.set(model, Integer.class.cast(value).longValue());
+                    } else if (value != null) {
+                        property.field.set(model, Binder.directBind(value.toString(), property.type));
                     }
                 }
                 
