@@ -48,6 +48,14 @@ public class ESearch extends PlayPlugin {
         return slugify(clazz.getSimpleName());
     }
 
+    static List<Property> searchableProperties(Class<? extends Model> type) {
+        List<Property> result = new ArrayList<Property>();
+        for (Property property : Model.Manager.factoryFor(type).listProperties()) {
+            result.add(property);
+        }
+        return unmodifiableList(result);
+    }
+
     /**
      * @see PlayPlugin#onApplicationStart()
      */
@@ -158,14 +166,6 @@ public class ESearch extends PlayPlugin {
             if (isSearchable(type)) {
                 result.add(type);
             }
-        }
-        return unmodifiableList(result);
-    }
-
-    private List<Property> searchableProperties(Class<? extends Model> type) {
-        List<Property> result = new ArrayList<Property>();
-        for (Property property : Model.Manager.factoryFor(type).listProperties()) {
-            result.add(property);
         }
         return unmodifiableList(result);
     }
