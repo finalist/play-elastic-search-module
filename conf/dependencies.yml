@@ -1,8 +1,8 @@
-self: play -> esearch 1.0
+self: finalist -> esearch 1.0
 
 require:
     - play
-    - org.elasticsearch -> elasticsearch 0.17.4
+    - org.elasticsearch -> elasticsearch 0.17.6
 
 repositories:
     - sonatype:

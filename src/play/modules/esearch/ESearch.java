@@ -14,6 +14,7 @@ import org.elasticsearch.ElasticSearchException;
 import org.elasticsearch.action.admin.indices.create.CreateIndexRequest;
 import org.elasticsearch.action.admin.indices.delete.DeleteIndexRequest;
 import org.elasticsearch.action.admin.indices.exists.IndicesExistsRequest;
+import org.elasticsearch.action.delete.DeleteRequest;
 import org.elasticsearch.client.Client;
 import org.elasticsearch.client.IndicesAdminClient;
 import org.elasticsearch.client.action.search.SearchRequestBuilder;
@@ -62,12 +63,7 @@ public class ESearch extends PlayPlugin {
     @Override
     public void onApplicationStart() {
         createClient();
-        
-        try {
-            createIndex();
-        } catch (IOException e) {
-            Logger.error(e, "Failed to created indices");
-        }
+        createIndex();
     }
     
     /**
@@ -83,7 +79,9 @@ public class ESearch extends PlayPlugin {
         if ("JPASupport.objectPersisted".equals(message) || "JPASupport.objectUpdated".equals(message)) {
             index((Model) context);
         } else if ("JPASupport.objectDeleted".equals(message)) {
-            
+            unindex((Model) context);
+        } else {
+            Logger.info("Foo " +message);
         }
     }
 
@@ -103,7 +101,16 @@ public class ESearch extends PlayPlugin {
             Logger.info(e, "Failed to index a model %s", model);
         }
     }
-    
+
+    private void unindex(Model model) {
+        Class<? extends Model> type = model.getClass();
+        if (!isSearchable(type)) {
+            return;
+        }
+
+        Logger.info("Going to unindex a model %s", model);
+        client.delete(new DeleteRequest(indexName(), typeName(type), String.valueOf(model._key()))).actionGet();
+    }
 
     private void createClient() {
         Logger.info("Starting ESearch for Play!");
@@ -112,19 +119,23 @@ public class ESearch extends PlayPlugin {
         client = node.client();
     }
 
-    private void createIndex() throws IOException {
-        IndicesAdminClient indices = client.admin().indices();
-
-        if (indices.exists(new IndicesExistsRequest(indexName())).actionGet().exists()) {
-            Logger.info("The index exists already, deleting ...");
-            indices.delete(new DeleteIndexRequest(indexName())).actionGet();
+    private void createIndex() {
+        try {
+            IndicesAdminClient indices = client.admin().indices();
+    
+            if (indices.exists(new IndicesExistsRequest(indexName())).actionGet().exists()) {
+                Logger.info("The index exists already, deleting ...");
+                indices.delete(new DeleteIndexRequest(indexName())).actionGet();
+            }
+    
+            CreateIndexRequest request = new CreateIndexRequest(indexName());
+            for (Class<? extends Model> type : searchableTypes()) {
+                request.mapping(typeName(type), toMapping(type));
+            }
+            indices.create(request).actionGet();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
-
-        CreateIndexRequest request = new CreateIndexRequest(indexName());
-        for (Class<? extends Model> type : searchableTypes()) {
-            request.mapping(typeName(type), toMapping(type));
-        }
-        indices.create(request).actionGet();
     }
 
     private XContentBuilder toSource(Model model) throws IOException, IllegalArgumentException, IllegalAccessException {
