@@ -1,7 +1,7 @@
 package play.modules.esearch;
 
-import static java.util.Arrays.asList;
 import static java.util.Collections.unmodifiableList;
+import static org.apache.commons.lang.StringUtils.isNotEmpty;
 import static org.elasticsearch.common.xcontent.XContentFactory.jsonBuilder;
 import static org.elasticsearch.node.NodeBuilder.nodeBuilder;
 import static play.templates.JavaExtensions.slugify;
@@ -10,7 +10,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.elasticsearch.ElasticSearchException;
 import org.elasticsearch.action.admin.indices.create.CreateIndexRequest;
 import org.elasticsearch.action.admin.indices.delete.DeleteIndexRequest;
 import org.elasticsearch.action.admin.indices.exists.IndicesExistsRequest;
@@ -155,7 +154,7 @@ public class ESearch extends PlayPlugin {
         mapping.field(typeName(type)).startObject();
         mapping.field("properties").startObject();
         for (Property property : searchableProperties(type)) {
-            mapping.field(property.name).startObject();
+            mapping.field(name(property)).startObject();
             mapping.field("type", type(property));
             index(property, mapping);
             mapping.endObject();
@@ -179,6 +178,16 @@ public class ESearch extends PlayPlugin {
             }
         }
         return unmodifiableList(result);
+    }
+
+    private String name(Property property) {
+        Field field = property.field.getAnnotation(Field.class);
+        if (field != null) {
+            if (isNotEmpty(field.name())) {
+                return field.name().trim();
+            }
+        }
+        return property.name;
     }
 
     private String type(Property property) {
