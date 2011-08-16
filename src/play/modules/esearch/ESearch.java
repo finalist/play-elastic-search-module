@@ -182,10 +182,8 @@ public class ESearch extends PlayPlugin {
 
     private String name(Property property) {
         Field field = property.field.getAnnotation(Field.class);
-        if (field != null) {
-            if (isNotEmpty(field.name())) {
-                return field.name().trim();
-            }
+        if (field != null && isNotEmpty(field.name())) {
+            return field.name().trim();
         }
         return property.name;
     }
