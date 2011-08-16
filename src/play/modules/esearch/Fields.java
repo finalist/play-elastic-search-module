@@ -7,8 +7,7 @@ import java.lang.annotation.Target;
 
 @Target({ ElementType.FIELD, ElementType.METHOD })
 @Retention(RetentionPolicy.RUNTIME)
-public @interface Field {
+public @interface Fields {
 
-    String name() default "";
-    Index index() default Index.DEFAULT;
+    Field[] fields();
 }

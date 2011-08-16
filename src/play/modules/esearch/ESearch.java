@@ -182,7 +182,10 @@ public class ESearch extends PlayPlugin {
     }
 
     private String type(Property property) {
-        if (!property.isRelation) {
+        Fields fields = property.field.getAnnotation(Fields.class);
+        if (fields != null && fields.fields().length > 1) {
+            return "multi_field";            
+        } else if (!property.isRelation) {
             if (property.type == int.class || property.type == Integer.class) {
                 return "integer";
             } else if (property.type == long.class || property.type == Long.class) {
